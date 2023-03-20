@@ -1,7 +1,7 @@
 # RSA (Rivest–Shamir–Adleman)
 
-- Differents types de chiffrement étudiés 
-	* symmétrique 
+- Differents types de chiffrement étudiés
+	* symmétrique
 	* asymmétrique
 - Rappels d'arithmétique
 	* Algorithme d'Euclide étendu
@@ -12,9 +12,9 @@
 	* Chiffrement et déchiffrement
 - Limitations connues de RSA
 	* common factor attack (bad key)
+	* CCA on textbook RSA (oracle decrypts chosen cipher, no padding)
 	* CRT optimization with single failure (computation failed without verification)
 	* Håstad's broadcast attack (same m, crypted for 3 n, e = 3, no padding)
-	* CCA on textbook RSA
 	* Bleichenbacher attack (TODO, CCA2 deterministic padding pkcs-15)
 
 ---
@@ -30,20 +30,24 @@
 `D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
 </center>
 
-Les systèmes de ce genre ont comme défaut qu'ils assument que les utilisateurs 
+Ainsi, le message 'WE ATTACK AT DAWN' devient 'ZH DWWDFN DW GDZQ'
+
+Les systèmes de ce genre ont comme défaut qu'ils assument que les utilisateurs
 peuvent échanger une clé en toute confidentialité
 
 ---
 
 ## Chiffrement asymmétrique
 
-- Alice et Bob génèrent chacun une paire de clés 
- * Une clé privée, qu'ils gardent chacun pour eux
- * Une clé publique, qu'ils peuvent distribuer
-- Alice peut utiliser la clé publique de Bob pour lui chiffrer un message
- * Bob déchiffre le message avec sa clé privée
-- Alice peut aussi utiliser sa clé privée pour signer un message
- * Bob vérifie la signature avec la clé publique de Alice
+- Alice et Bob génèrent chacun une paire de clés
+ * Une <green>clé publique</green>, qu'ils peuvent distribuer
+ * Une <red>clé privée</red>, qu'ils gardent chacun pour eux
+
+- Alice peut utiliser la <green>clé publique</green> de Bob pour lui chiffrer un message
+ * Bob déchiffre le message avec sa <red>clé privée</red>
+
+- Alice peut aussi utiliser sa <red>clé privée</red> pour signer un message
+ * Bob vérifie la signature avec la <green>clé publique</green> de Alice
 
 **RSA est un example de chiffrement asymmétrique**
 
@@ -53,10 +57,9 @@ L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalabl
 
 ## Algorithme d'Euclide étendu
 
-La méthode introduite par Euclide est basée sur l'observation que, étant donné $a, b \in \mathbb{Z}$
-et notant r le reste de la division euclidienne de b par a
+Soit $a, b \in \mathbb{Z}$, $\exists q, r \in \mathbb{Z}: a = bq + r$
 
-$$\gcd(a, b) = \gcd(b, r)$$
+Aussi, on a $\gcd(a, b) = \gcd(b, r)$
 
 ```python
 def egcd(a, b):
@@ -68,9 +71,9 @@ def egcd(a, b):
 		return (d, x - q * y, y)
 ```
 
-Procédure qui, étant donné a et b, calcule $d = \gcd(a, b)$, ainsi que les coefficient $x, y \in \mathbb{Z}$ de l'identité de Bézout
+Calcule $d = \gcd(a, b)$, ainsi que les coefficient $x, y \in \mathbb{Z}$ de l'identité de Bézout
 
-$$ax + by = d$$
+$$xa + yb = d$$
 
 ---
 
@@ -85,11 +88,11 @@ x \equiv a \pmod p \newline
 x \equiv b \pmod q
 $$
 
-Et toutes deux solutions $x_1, x_2$ on a $x_1 \equiv x_2 \pmod n$
+Et pour toutes deux solutions $x_1, x_2$ on a $x_1 \equiv x_2 \pmod n$
 
 Ainsi il existe une unique solution inférieure à n
 
-On a donc l'isomorphisme d'anneaux suivant:
+Autremet dit, on a l'isomorphisme d'anneaux suivant:
 
 $$
 \mathbb{Z}/n\mathbb{Z} \; \tilde{\rightarrow} \; \mathbb{Z}/p\mathbb{Z} \times \mathbb{Z}/q\mathbb{Z}
@@ -120,7 +123,7 @@ $$\varphi(n) = \varphi(p)\varphi(q) = (p - 1)(q - 1)$$
 
 #### Génération de clé
 
-1. On choisi deux grands nombres premiers p et q. 
+1. On choisi deux grands nombres premiers p et q.
 2. On calcule `n = pq`
 3. On choisi e tel que $e \perp \varphi(n)$
  * généralement 3 ou 65537 (petits pour accélérer le chiffrement)
@@ -130,7 +133,7 @@ La clé publique est donc la paire (n, e) et la clé privée d
 
 #### Chiffrement et déchiffrement
 
-Soit M un entier correspondant au message à chiffrer, on calcule 
+Soit M un entier correspondant au message à chiffrer, on calcule
 
 $$M^e \equiv C \pmod n$$
 
@@ -141,14 +144,51 @@ $$C^d \equiv M^{ed} \equiv M^{1 + k\varphi(n)} \equiv M \pmod n$$
 
 ## Problème de factorization première
 
-La sécurité du cryptosystème RSA repose sur la difficulté de retrouver le message originel M, 
+La sécurité du cryptosystème RSA repose sur la difficulté de retrouver le message originel M,
 connaissant seulement le message chiffré C, l'exposant e et le moduli n.
 
 La manière connue la plus rapide de faire est de décomposer n en ses facteurs premiers,
-afin de calculer `ɸ(n)` et l'inverse modulaire de e en `ɸ(n)`. Calculer cette décomposition 
+afin de calculer `ɸ(n)` et l'inverse modulaire de e en `ɸ(n)`. Calculer cette décomposition
 est jugé suffisament difficile pour des n suffisament grands (habituellement écrit sur 2048 bits de nos jours)
 
 ---
 
-## Limitations de RSA
+## Common Factor Attack
 
+Soient $n_1 = p_1q$ et $n_2 = p_2q$
+
+Alors on a $\gcd(n_1, n_2) = q$ et $p_1 = \frac{n_1}{q}, p_2 = \frac{n_2}{q}$
+
+---
+
+## Chosen Ciphertext Attack
+
+Soit $C \equiv M^e \pmod n$
+
+Prenons $C_a \equiv 2^e \pmod n$, et $C_b = C_aC$
+
+$$ 
+\begin{equation}
+\begin{split}
+C_b & \equiv 2^e M^e \pmod n \newline
+    & \equiv (2M)^e
+\end{split}
+\end{equation}
+$$
+
+On demande a l'oracle de dechiffrer $C_b$
+
+$$
+\begin{equation}
+\begin{split}
+(C_b)^d & \equiv ((2M)^e)^d \pmod n \newline
+      & \equiv 2M
+\end{split}
+\end{equation}
+$$
+
+---
+
+  * CRT optimization with single failure (computation failed without verification)
+	* Håstad's broadcast attack (same m, crypted for 3 n, e = 3, no padding)
+	* Bleichenbacher attack (TODO, CCA2 deterministic padding pkcs-15)
