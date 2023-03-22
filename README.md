@@ -57,9 +57,9 @@ L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalabl
 
 ## Algorithme d'Euclide étendu
 
-Soit $a, b \in \mathbb{Z}$, $\exists q, r \in \mathbb{Z}: a = bq + r$
+Soit $a, b \in \mathbb{Z}$, on a $\exists q, r \in \mathbb{Z}: a = qb + r$ avec $r < b$
 
-Aussi, on a $\gcd(a, b) = \gcd(b, r)$
+De plus, sachant que $\gcd(a, b) = \gcd(b, r)$, on peut construire la procédure suivante
 
 ```python
 def egcd(a, b):
@@ -71,7 +71,9 @@ def egcd(a, b):
 		return (d, x - q * y, y)
 ```
 
-Calcule $d = \gcd(a, b)$, ainsi que les coefficient $x, y \in \mathbb{Z}$ de l'identité de Bézout
+On calcule $d, x, y = egcd(a, b)$
+
+Où d est le pgcd(a, b), et $x, y \in \mathbb{Z}$ les coefficients de l'identité de Bézout
 
 $$xa + yb = d$$
 
@@ -79,24 +81,26 @@ $$xa + yb = d$$
 
 ## Théorème des restes chinois
 
-Soit $p, q \in \mathbb{Z}: p \perp q$ et $n = pq$
+Soit $p, q \in \mathbb{Z}$ tels que $p \perp q$ et notons $n = pq$
 
-Alors avec $a, b \in \mathbb{Z}$, le système suivant a une solution
-
-$$
-x \equiv a \pmod p \newline
-x \equiv b \pmod q
-$$
-
-Et pour toutes deux solutions $x_1, x_2$ on a $x_1 \equiv x_2 \pmod n$
-
-Ainsi il existe une unique solution inférieure à n
-
-Autremet dit, on a l'isomorphisme d'anneaux suivant:
+Alors avec $a, b \in \mathbb{Z}$, on a $\exists! c \in \mathbb{Z}_n$ tel que
 
 $$
-\mathbb{Z}/n\mathbb{Z} \; \tilde{\rightarrow} \; \mathbb{Z}/p\mathbb{Z} \times \mathbb{Z}/q\mathbb{Z}
+c \equiv a \pmod p \newline
+c \equiv b \pmod q
 $$
+
+À l'aide de l'algorithme d'Euclide, on trouve $x, y \in \mathbb{Z}$ les coefficients de Bézout tels que 
+
+$$xp + yq = 1  \tag{car $p \perp q$}$$
+
+Puis on construit la solution c comme suit
+
+$$c \equiv ayq + bxp \pmod n$$
+
+Autrement formulé, on a l'isomorphisme d'anneaux suivant
+
+$$\mathbb{Z}_n \; \tilde{\rightarrow} \; \mathbb{Z}_p \times \mathbb{Z}_q$$
 
 ---
 
@@ -104,15 +108,20 @@ $$
 
 #### Petit théorème de Fermat
 
-Soit $a, p \in \mathbb{Z}$ tels que p est premier, et $p \nmid a$, alors
+Soit $a, p \in \mathbb{Z}$ tels que p est premier, et $a \perp p$, alors
+
 $$a^{p-1} \equiv 1 \pmod p$$
+
+<small>
+> "... de quoi je vous envoierois la démonstration, si je n'appréhendois d'être trop long."
+</small>
 
 #### Théorème d'Euler (Plus général)
 
 Soit $a, n \in \mathbb{Z}: a \perp n$, alors
 $$a^{\varphi(n)} \equiv 1 \pmod n$$
 
-Où $\varphi(n)$ est l'indicatrice d'Euler; l'ordre du groupe multiplicatif $\mathbb{Z}/n\mathbb{Z}$
+Où $\varphi(n)$ est l'indicatrice d'Euler; l'ordre du groupe multiplicatif $\mathbb{Z}_n$
 
 En particulier, par le théorème des restes chinois, quand `n = pq`, avec p et q premiers
 $$\varphi(n) = \varphi(p)\varphi(q) = (p - 1)(q - 1)$$
@@ -129,66 +138,84 @@ $$\varphi(n) = \varphi(p)\varphi(q) = (p - 1)(q - 1)$$
  * généralement 3 ou 65537 (petits pour accélérer le chiffrement)
 4. On calcule d tel que $ed \equiv 1 \pmod {\varphi(n)}$ (avec l'algorithme d'Euclide étendu)
 
-La clé publique est donc la paire (n, e) et la clé privée d
+La <green>clé publique</green> est donc la paire <green>(n, e)</green> et la <red>clé privée</red> est simplement <red>d</red>
 
 #### Chiffrement et déchiffrement
 
-Soit M un entier correspondant au message à chiffrer, on calcule
+Soit M un entier correspondant au message clair, on calcule le cryptogramme $C_M$
 
-$$M^e \equiv C \pmod n$$
+$$C_M \equiv M^e \pmod n$$
 
-et le détenteur de la clé privée peut retrouver le message comme suit
-$$C^d \equiv M^{ed} \equiv M^{1 + k\varphi(n)} \equiv M \pmod n$$
+et le détenteur de la <red>clé privée</red> peut retrouver le message M comme suit
+$$(C_M)^d \equiv M^{ed} \equiv M^{1 + k\varphi(n)} \equiv M \pmod n$$
 
 ---
 
 ## Problème de factorization première
 
 La sécurité du cryptosystème RSA repose sur la difficulté de retrouver le message originel M,
-connaissant seulement le message chiffré C, l'exposant e et le moduli n.
+connaissant seulement le message chiffré $C_M$, l'exposant e et le moduli n.
 
 La manière connue la plus rapide de faire est de décomposer n en ses facteurs premiers,
-afin de calculer `ɸ(n)` et l'inverse modulaire de e en `ɸ(n)`. Calculer cette décomposition
+afin de calculer $\varphi(n)$ et l'inverse modulaire de e en $\varphi(n)$. Calculer cette décomposition
 est jugé suffisament difficile pour des n suffisament grands (habituellement écrit sur 2048 bits de nos jours)
 
 ---
 
 ## Common Factor Attack
 
-Soient $n_1 = p_1q$ et $n_2 = p_2q$
+Soient $p_1, p_2, q \in \mathbb{Z}$ premiers, notons
 
-Alors on a $\gcd(n_1, n_2) = q$ et $p_1 = \frac{n_1}{q}, p_2 = \frac{n_2}{q}$
+$$n_1 = p_1q \qquad n_2 = p_2q$$
+
+On peut trouver le facteur commun a l'aide de l'algorithme d'Euclide
+
+$$q = \gcd(n_1, n_2)$$
+
+Et retrouver les facteurs manquant de $n_1$ et $n_2$
+
+$$p_1 = \frac{n_1}{q} \qquad p_2 = \frac{n_2}{q}$$
 
 ---
 
 ## Chosen Ciphertext Attack
 
-Soit $C \equiv M^e \pmod n$
+Soit $C_M \equiv M^e \pmod n$, M étant un message secret.
 
-Prenons $C_a \equiv 2^e \pmod n$, et $C_b = C_aC$
+Supposons que l'on peut demander au détenteur de la clé privée de déchiffrer n'importe quel message autre que $C_M$
 
-$$ 
-\begin{equation}
-\begin{split}
-C_b & \equiv 2^e M^e \pmod n \newline
-    & \equiv (2M)^e
-\end{split}
-\end{equation}
-$$
+Prenons $a \in \mathbb{Z}_n^\times$ et $C_a \equiv a^e \pmod n$
 
-On demande a l'oracle de dechiffrer $C_b$
+On peut calculer $$C_aC_M \equiv a^e M^e \equiv (aM)^e \pmod n$$
 
-$$
-\begin{equation}
-\begin{split}
-(C_b)^d & \equiv ((2M)^e)^d \pmod n \newline
-      & \equiv 2M
-\end{split}
-\end{equation}
-$$
+On demande a l'oracle de dechiffrer $C_aC_M$
+
+$$(C_aC_M)^d \equiv ((aM)^e)^d \equiv aM \pmod n$$
+
+Ainsi on peut retrouver $M \equiv a^{-1}(C_aC_M)^d$
 
 ---
 
-  * CRT optimization with single failure (computation failed without verification)
-	* Håstad's broadcast attack (same m, crypted for 3 n, e = 3, no padding)
+## CRT optimization with single failure
+
+---
+
+## Håstad's broadcast attack
+
+Soit un message M, chiffré pour 3 clés $n_1, n_2, n_3$ avec $e = 3$
+
+$$
+C_1 \equiv M^3 \pmod {n_1} \newline
+C_2 \equiv M^3 \pmod {n_2} \newline
+C_3 \equiv M^3 \pmod {n_3}
+$$
+
+Par le théorème des restes chinois, on peut calculer $C \equiv M^3 \pmod {n_1n_2n_3}$
+
+Comme $M < n_i$, on a $M^3 < n_1n_2n_3$
+
+Ainsi on peut retrouver $M = \sqrt[3]{C}$
+
+---
+
 	* Bleichenbacher attack (TODO, CCA2 deterministic padding pkcs-15)
