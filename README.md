@@ -1,57 +1,18 @@
 # RSA (Rivest–Shamir–Adleman)
 
-- Differents types de chiffrement étudiés
-	* symmétrique
-	* asymmétrique
 - Rappels d'arithmétique
 	* Algorithme d'Euclide étendu
 	* Théorème des restes chinois
 	* Théorème d'Euler-Fermat
-- Fonctionnement de RSA
-	* Génération de clé
-	* Chiffrement et déchiffrement
-- Limitations connues de RSA
-	* common factor attack (bad key)
-	* CCA on textbook RSA (oracle decrypts chosen cipher, no padding)
-	* CRT optimization with single failure (computation failed without verification)
-	* Håstad's broadcast attack (same m, crypted for 3 n, e = 3, no padding)
-	* Bleichenbacher attack (TODO, CCA2 deterministic padding pkcs-15)
-
----
-
-## Chiffrement symmétrique
-
-- Alice et Bob doivent au préalable échanger en secret une clé
-- Celle-ci permet de chiffrer et déchiffrer des messages
-
-**Ex: Avec clé 3, le chiffre de César suivant permet de chiffrer et déchiffrer du texte facilement en effectuant un décalage**
- <center>
-`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`<br>
-`D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
-</center>
-
-Ainsi, le message 'WE ATTACK AT DAWN' devient 'ZH DWWDFN DW GDZQ'
-
-Les systèmes de ce genre ont comme défaut qu'ils assument que les utilisateurs
-peuvent échanger une clé en toute confidentialité
-
----
-
-## Chiffrement asymmétrique
-
-- Alice et Bob génèrent chacun une paire de clés
- * Une <green>clé publique</green>, qu'ils peuvent distribuer
- * Une <red>clé privée</red>, qu'ils gardent chacun pour eux
-
-- Alice peut utiliser la <green>clé publique</green> de Bob pour lui chiffrer un message
- * Bob déchiffre le message avec sa <red>clé privée</red>
-
-- Alice peut aussi utiliser sa <red>clé privée</red> pour signer un message
- * Bob vérifie la signature avec la <green>clé publique</green> de Alice
-
-**RSA est un example de chiffrement asymmétrique**
-
-L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalable de secret
+- Cryptographie
+	* Symmétrique
+	* Asymmétrique
+	* RSA
+- Cryptanalyse
+	* Clés à facteurs communs
+  * Facteurs rapprochés
+	* Chosen ciphertext attack
+	* Håstad's broadcast attack
 
 ---
 
@@ -121,10 +82,46 @@ $$a^{p-1} \equiv 1 \pmod p$$
 Soit $a, n \in \mathbb{Z}: a \perp n$, alors
 $$a^{\varphi(n)} \equiv 1 \pmod n$$
 
-Où $\varphi(n)$ est l'indicatrice d'Euler; l'ordre du groupe multiplicatif $\mathbb{Z}_n$
+Où $\varphi(n)$ est l'indicatrice d'Euler; l'ordre du groupe $\mathbb{Z}_n^\times$
 
 En particulier, par le théorème des restes chinois, quand `n = pq`, avec p et q premiers
 $$\varphi(n) = \varphi(p)\varphi(q) = (p - 1)(q - 1)$$
+
+---
+
+## Chiffrement symmétrique
+
+- Alice et Bob doivent au préalable échanger en secret une clé
+- Celle-ci permet de chiffrer et déchiffrer des messages
+
+**Ex: Avec clé 3, le chiffre de César suivant permet de chiffrer et déchiffrer du texte facilement en effectuant un décalage**
+ <center>
+`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`<br>
+`D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
+</center>
+
+Ainsi, le message 'WE ATTACK AT DAWN' devient 'ZH DWWDFN DW GDZQ'
+
+Les systèmes de ce genre ont comme défaut qu'ils assument que les utilisateurs
+peuvent échanger une clé en toute confidentialité
+
+---
+
+## Chiffrement asymmétrique
+
+- Alice et Bob génèrent chacun une paire de clés
+ * Une <green>clé publique</green>, qu'ils peuvent distribuer
+ * Une <red>clé privée</red>, qu'ils gardent chacun pour eux
+
+- Alice peut utiliser la <green>clé publique</green> de Bob pour lui chiffrer un message
+ * Bob déchiffre le message avec sa <red>clé privée</red>
+
+- Alice peut aussi utiliser sa <red>clé privée</red> pour signer un message
+ * Bob vérifie la signature avec la <green>clé publique</green> de Alice
+
+**RSA est un example de chiffrement asymmétrique**
+
+L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalable de secret
 
 ---
 
@@ -151,18 +148,33 @@ $$(C_M)^d \equiv M^{ed} \equiv M^{1 + k\varphi(n)} \equiv M \pmod n$$
 
 ---
 
-## Problème de factorization première
+## Facteurs communs
 
-La sécurité du cryptosystème RSA repose sur la difficulté de retrouver le message originel M,
-connaissant seulement le message chiffré $C_M$, l'exposant e et le moduli n.
+Prenons ici les deux clé publiques $n_1 = 391, n_2 = 667$
 
-La manière connue la plus rapide de faire est de décomposer n en ses facteurs premiers,
-afin de calculer $\varphi(n)$ et l'inverse modulaire de e en $\varphi(n)$. Calculer cette décomposition
-est jugé suffisament difficile pour des n suffisament grands (habituellement écrit sur 2048 bits de nos jours)
+Par l'algorithme d'Euclide
+
+On a 
+
+667 = 1 * 391 + 276
+
+391 = 1 * 276 + 115
+
+276 = 1 * 115 + 161
+
+161 = 1 * 115 + 46
+
+115 = 2 * 46 + 23
+
+46 = 2 * 23 + 0
+
+Donc $q = 23 = pgcd(391, 667)$
+
+Et $p_1 = 391 / 23 = 17, p_2 = 667 / 23 = 29$
 
 ---
 
-## Common Factor Attack
+## Facteurs communs
 
 Soient $p_1, p_2, q \in \mathbb{Z}$ premiers, notons
 
@@ -175,6 +187,55 @@ $$q = \gcd(n_1, n_2)$$
 Et retrouver les facteurs manquant de $n_1$ et $n_2$
 
 $$p_1 = \frac{n_1}{q} \qquad p_2 = \frac{n_2}{q}$$
+
+---
+
+## Factorisation de Fermat
+
+Soit n = 5959, on cherche $a, b \in \mathbb{N}$, tels que $n = a^2 - b^2$
+
+Pour $i = 0, 1, ...$ On calcule $a = \lceil\sqrt{n}\rceil + i,\; b^2 = a^2 - n, b = \sqrt{b^2}$
+
+Pour $i = 0$, on a $a = 78,\; b^2 = 125,\; b = 11.18$
+
+Pour $i = 1$, on a $a = 79,\; b^2 = 282,\; b = 16.79$
+
+Pour $i = 2$, on a $a = 80,\; b^2 = 441,\; b = 21$
+
+On a donc 
+
+$$ n = a^2 - b^2 = (a - b) \times (a + b) = (80 - 21) \times (80 + 21) = 59 \times 101 $$
+
+---
+
+## Factorisation de Fermat
+
+La méthode consiste a chercher les $a, b \in \mathbb{N}$ tels que $n = a^2 - b^2$
+
+Ces a, b existent, car si $n = cd$, on constate $n = \(\frac{c+d}{2}\)^2 - \(\frac{c-d}{2}\)^2 = ... = \frac{4cd}{4}$
+
+On a $n = a^2 - b^2 = (a - b) \times (a + b)$
+
+Donc $a \pm b$ sont des facteurs de n
+
+
+```python
+from math import sqrt, isqrt, ceil
+
+
+def fermat_facto(n):
+    a = ceil(sqrt(n))
+    b2 = a*a - n
+    while isqrt(b2)**2 != b2: # while b not a square
+        a += 1
+        b2 = a*a - n
+    b = isqrt(b2)
+    return (a - b, a + b)  # we have n = a*a - b*b
+```
+
+---
+
+## Chosen Ciphertext Attack
 
 ---
 
@@ -196,7 +257,7 @@ Ainsi on peut retrouver $M \equiv a^{-1}(C_aC_M)^d$
 
 ---
 
-## CRT optimization with single failure
+## Håstad's broadcast attack
 
 ---
 
@@ -215,7 +276,3 @@ Par le théorème des restes chinois, on peut calculer $C \equiv M^3 \pmod {n_1n
 Comme $M < n_i$, on a $M^3 < n_1n_2n_3$
 
 Ainsi on peut retrouver $M = \sqrt[3]{C}$
-
----
-
-	* Bleichenbacher attack (TODO, CCA2 deterministic padding pkcs-15)
