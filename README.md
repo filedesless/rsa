@@ -1,67 +1,99 @@
-# RSA (Rivest–Shamir–Adleman)
+# Cryptosystème RSA
+
+<center>
+<h4>Introduction à la cryptographie et à la cryptanalyse</h4>
+<img src="rsa.jpg.webp" />
+<h6>Rivest, Shamir et Adleman, les auteurs du cryptosystème</h6>
+</center>
+
+---
+
+## Un peu de vocabulaire
+
+- La **cryptologie** est la science du secret, elle englobe
+
+  - La **cryptographie** est l'art de protéger l'information 
+
+  - La **cryptanalyse** est l'analyse de la cryptographie
+
+- Le **chiffrement** est la transformation qui, à l'aide d'une clé, rend un message incompréhensible sans l'aide d'une clé
+
+- Un **cryptogramme** est un message chiffré
+
+- Un **cryptosystème** est un algorithme de chiffrement
+
+---
+
+# Plan de l'exposé
 
 - Rappels d'arithmétique
 	* Algorithme d'Euclide étendu
 	* Théorème des restes chinois
 	* Théorème d'Euler-Fermat
+
 - Cryptographie
 	* Symmétrique
 	* Asymmétrique
-	* RSA
+	* Clés RSA
+  * Chiffrement RSA
+
 - Cryptanalyse
 	* Clés à facteurs communs
-  * Facteurs rapprochés
 	* Chosen ciphertext attack
+  * Factorisation de Fermat
 	* Håstad's broadcast attack
 
 ---
 
 ## Algorithme d'Euclide étendu
 
-Soit $a, b \in \mathbb{Z}$, on a $\exists q, r \in \mathbb{Z}: a = qb + r$ avec $r < b$
+Soit $a, b \in \mathbb{Z}$, *egcd* est un algorithme très efficace permettant de calculer 
 
-De plus, sachant que $\gcd(a, b) = \gcd(b, r)$, on peut construire la procédure suivante
+$$(d, x, y) = egcd(a, b)$$
 
-```python
-def egcd(a, b):
-	if a == 0:
-		return (b, 0, 1)
-	else:
-		q, r = divmod(b, a) # quotient et reste de la division Euclidienne
-		d, y, x = egcd(r, a)
-		return (d, x - q * y, y)
-```
+- d est le $\gcd(a, b)$, c'est-à-dire le plus grand entier divisant a et b
+- x et y sont les coefficients de l'identité de Bézout $xa + yb = d$
 
-On calcule $d, x, y = egcd(a, b)$
+La méthode est basée sur la division Euclidienne, c'est-à-dire, pour certains $q, r \in \mathbb{Z}$
 
-Où d est le pgcd(a, b), et $x, y \in \mathbb{Z}$ les coefficients de l'identité de Bézout
+$$a = qb + r \tag{avec r < b}$$
 
-$$xa + yb = d$$
+Sachant que $\gcd(a, b) = \gcd(b, r)$, on répète la division jusqu'à obtenir r = 0
+
+Par exemple
+
+$$
+(1, 3, -2) = egcd(5, 7) \tag{car $3\times5-2\times7=1$}
+$$
 
 ---
 
 ## Théorème des restes chinois
 
-Soit $p, q \in \mathbb{Z}$ tels que $p \perp q$ et notons $n = pq$
+Soit $p, q \in \mathbb{Z}$ tels que $\gcd(p, q) = 1$ et notons $n = pq = 5 \times 7 = 35$
 
-Alors avec $a, b \in \mathbb{Z}$, on a $\exists! c \in \mathbb{Z}_n$ tel que
+Alors avec $a, b \in \mathbb{Z}$ (prenons 1 et 2), on a $\exists! c \in \mathbb{Z}_n$ tel que
 
 $$
-c \equiv a \pmod p \newline
-c \equiv b \pmod q
+\begin{align\*}
+c \equiv a \pmod p & & c \equiv 1 \pmod 5 \\\\
+c \equiv b \pmod q & & c \equiv 2 \pmod 7
+\end{align\*}
 $$
 
-À l'aide de l'algorithme d'Euclide, on trouve $x, y \in \mathbb{Z}$ les coefficients de Bézout tels que 
+À l'aide de l'algorithme d'Euclide étendu, on trouve $x, y \in \mathbb{Z}$ les coefficients de Bézout
 
-$$xp + yq = 1  \tag{car $p \perp q$}$$
+$$
+\begin{align\*}
+3 \times 5 -2 \times 7 = 1  \tag{$(1, 3, -2) = egcd(5, 7)$}
+\end{align\*}
+$$
 
 Puis on construit la solution c comme suit
 
 $$c \equiv ayq + bxp \pmod n$$
 
-Autrement formulé, on a l'isomorphisme d'anneaux suivant
-
-$$\mathbb{Z}_n \; \tilde{\rightarrow} \; \mathbb{Z}_p \times \mathbb{Z}_q$$
+$$16 \equiv 1 \times (-2) \times 7 + 2 \times 3 \times 5 \pmod{35}$$
 
 ---
 
@@ -69,41 +101,51 @@ $$\mathbb{Z}_n \; \tilde{\rightarrow} \; \mathbb{Z}_p \times \mathbb{Z}_q$$
 
 #### Petit théorème de Fermat
 
-Soit $a, p \in \mathbb{Z}$ tels que p est premier, et $a \perp p$, alors
+Soit $a, p \in \mathbb{Z}$ tels que p est premier, et $a \nmid p$, alors
 
 $$a^{p-1} \equiv 1 \pmod p$$
 
-<small>
-> "... de quoi je vous envoierois la démonstration, si je n'appréhendois d'être trop long."
-</small>
-
 #### Théorème d'Euler (Plus général)
 
-Soit $a, n \in \mathbb{Z}: a \perp n$, alors
+Soit $a, n \in \mathbb{Z}$ tels que $\gcd(a, n) = 1$, alors
+
 $$a^{\varphi(n)} \equiv 1 \pmod n$$
 
-Où $\varphi(n)$ est l'indicatrice d'Euler; l'ordre du groupe $\mathbb{Z}_n^\times$
+Où la fonction $\varphi$ est l'indicatrice d'Euler
 
-En particulier, par le théorème des restes chinois, quand `n = pq`, avec p et q premiers
-$$\varphi(n) = \varphi(p)\varphi(q) = (p - 1)(q - 1)$$
+$$
+\begin{align\*}
+\varphi : \mathbb{N}^\* & \to \mathbb{N}^\* \\\\
+n &\mapsto \lvert \\{ m \leq n \mid gcd(m, n) = 1 \\} \rvert
+\end{align\*}
+$$
 
 ---
 
 ## Chiffrement symmétrique
 
 - Alice et Bob doivent au préalable échanger en secret une clé
+
 - Celle-ci permet de chiffrer et déchiffrer des messages
 
-**Ex: Avec clé 3, le chiffre de César suivant permet de chiffrer et déchiffrer du texte facilement en effectuant un décalage**
+Sur l'alphabet $\mathbb{Z}_n$ on peut construire $n\varphi(n)$ fonctions de chiffrement affines
+
+$$ 
+\begin{align\*}
+f_{ab} : \mathbb{Z}_n & \to \mathbb{Z}_n \tag{$a \in \mathbb{Z}_n^{\times}, b \in \mathbb{Z}_n$} \\\\
+x &\mapsto ax + b \pmod n
+\end{align\*}
+$$
+
+*Exemple*: la fonction $x \mapsto x + 3 \pmod{26}$ est appelée un code de César
  <center>
 `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`<br>
 `D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
 </center>
 
-Ainsi, le message 'WE ATTACK AT DAWN' devient 'ZH DWWDFN DW GDZQ'
+Plus généralement, sur un alphabet $\Sigma$ de cardinal n, on peut utiliser l'une des n! permutations $\sigma \in Sym(\Sigma)$ comme fonction de chiffrement
 
-Les systèmes de ce genre ont comme défaut qu'ils assument que les utilisateurs
-peuvent échanger une clé en toute confidentialité
+Ces méthodes, dites mono-alphabétiques, sont sujettes à l'analyse de fréquence
 
 ---
 
@@ -125,26 +167,52 @@ L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalabl
 
 ---
 
-## Fonctionnement de RSA
-
-#### Génération de clé
+## Génération de clé RSA
 
 1. On choisi deux grands nombres premiers p et q.
-2. On calcule `n = pq`
-3. On choisi e tel que $e \perp \varphi(n)$
- * généralement 3 ou 65537 (petits pour accélérer le chiffrement)
-4. On calcule d tel que $ed \equiv 1 \pmod {\varphi(n)}$ (avec l'algorithme d'Euclide étendu)
+2. On calcule `n = pq` et $\varphi(n) = (p - 1)(q - 1)$ (par Théorème des restes chinois)
+3. On choisi e tel que $gcd(e, \varphi(n)) = 1$ (Généralement 3 ou 65537)
+4. On calcule d l'inverse modulo $\varphi(n)$ de e (tel que $ed \equiv 1 \pmod {\varphi(n)}$)
+  * Si $(1, d, k) = egcd(e, \varphi(n))$, alors $de + k\varphi(n) = 1$
 
 La <green>clé publique</green> est donc la paire <green>(n, e)</green> et la <red>clé privée</red> est simplement <red>d</red>
 
-#### Chiffrement et déchiffrement
+La sécurité des clés reposent sur la difficulté, sachant n, de retrouver les facteurs p et q
+
+La paire (p, q) ou $\varphi(n)$ sont suffisant pour reconstruire <red>d</red> et compromettre le système
+
+En effet, on peut construire un polynôme dont les racines sont p et q comme suit
+
+$$
+\begin{align\*}
+\varphi(n) & = (p-1)(q-1) = pq - p - q + 1 \\\\
+\implies p + q & = n - \varphi(n) + 1 \\\\
+(x - p)(x - q) & = x^2 - (p + q)x + pq \\\\
+&= x^2 - (n - \varphi(n) + 1)x + n
+\end{align\*}
+$$
+
+---
+
+## Chiffrement et déchiffrement RSA
 
 Soit M un entier correspondant au message clair, on calcule le cryptogramme $C_M$
 
 $$C_M \equiv M^e \pmod n$$
 
 et le détenteur de la <red>clé privée</red> peut retrouver le message M comme suit
-$$(C_M)^d \equiv M^{ed} \equiv M^{1 + k\varphi(n)} \equiv M \pmod n$$
+$$
+\begin{align\*}
+(C_M)^d & \equiv M^{ed} \pmod n \\\\
+        & \equiv M^{1 + k\varphi(n)} \tag{$ed \equiv 1 \pmod{\varphi(n)}$}\\\\
+        & \equiv M (M^{\varphi(n)})^k \\\\
+        & \equiv M \tag{Thm Euler: $a^{\varphi(n)}\equiv1$}
+\end{align\*}
+$$
+
+La sécurité d'un cryptogramme repose sur la difficulté de trouver sa racine e-ième modulo n
+
+La sécurité de la clé privée, étant donné un message M et son cryptogramme C, repose sur la difficulté de calculer $d = log_C M$ (il s'agit du problème du logarithme discret)
 
 ---
 
