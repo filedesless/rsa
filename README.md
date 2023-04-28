@@ -39,8 +39,8 @@
 
 - Cryptanalyse
 	* Clés à facteurs communs
-	* Chosen ciphertext attack
   * Factorisation de Fermat
+	* Chosen ciphertext attack
 	* Håstad's broadcast attack
 
 ---
@@ -216,29 +216,19 @@ La sécurité de la clé privée, étant donné un message M et son cryptogramme
 
 ---
 
-## Facteurs communs
+## Cryptanalyse
 
-Prenons ici les deux clé publiques $n_1 = 391, n_2 = 667$
+RSA est un système complexe, ne pouvant être implémenté n'importe comment
 
-Par l'algorithme d'Euclide
+On s'intéresse maintenant à des cas limites pouvant compromettre la sécurité de RSA
 
-On a 
+#### Clés à facteurs communs
 
-667 = 1 * 391 + 276
+#### Factorisation de Fermat
 
-391 = 1 * 276 + 115
+#### Chosen ciphertext attack
 
-276 = 1 * 115 + 161
-
-161 = 1 * 115 + 46
-
-115 = 2 * 46 + 23
-
-46 = 2 * 23 + 0
-
-Donc $q = 23 = pgcd(391, 667)$
-
-Et $p_1 = 391 / 23 = 17, p_2 = 667 / 23 = 29$
+#### Håstad's broadcast attack
 
 ---
 
@@ -246,64 +236,15 @@ Et $p_1 = 391 / 23 = 17, p_2 = 667 / 23 = 29$
 
 Soient $p_1, p_2, q \in \mathbb{Z}$ premiers, notons
 
-$$n_1 = p_1q \qquad n_2 = p_2q$$
+$$n_1 = p_1q = 391 \qquad n_2 = p_2q = 667$$
 
 On peut trouver le facteur commun a l'aide de l'algorithme d'Euclide
 
-$$q = \gcd(n_1, n_2)$$
+$$q = \gcd(n_1, n_2) = \gcd(391, 667) = 23$$
 
 Et retrouver les facteurs manquant de $n_1$ et $n_2$
 
-$$p_1 = \frac{n_1}{q} \qquad p_2 = \frac{n_2}{q}$$
-
----
-
-## Factorisation de Fermat
-
-Soit n = 5959, on cherche $a, b \in \mathbb{N}$, tels que $n = a^2 - b^2$
-
-Pour $i = 0, 1, ...$ On calcule $a = \lceil\sqrt{n}\rceil + i,\; b^2 = a^2 - n, b = \sqrt{b^2}$
-
-Pour $i = 0$, on a $a = 78,\; b^2 = 125,\; b = 11.18$
-
-Pour $i = 1$, on a $a = 79,\; b^2 = 282,\; b = 16.79$
-
-Pour $i = 2$, on a $a = 80,\; b^2 = 441,\; b = 21$
-
-On a donc 
-
-$$ n = a^2 - b^2 = (a - b) \times (a + b) = (80 - 21) \times (80 + 21) = 59 \times 101 $$
-
----
-
-## Factorisation de Fermat
-
-La méthode consiste a chercher les $a, b \in \mathbb{N}$ tels que $n = a^2 - b^2$
-
-Ces a, b existent, car si $n = cd$, on constate $n = \(\frac{c+d}{2}\)^2 - \(\frac{c-d}{2}\)^2 = ... = \frac{4cd}{4}$
-
-On a $n = a^2 - b^2 = (a - b) \times (a + b)$
-
-Donc $a \pm b$ sont des facteurs de n
-
-
-```python
-from math import sqrt, isqrt, ceil
-
-
-def fermat_facto(n):
-    a = ceil(sqrt(n))
-    b2 = a*a - n
-    while isqrt(b2)**2 != b2: # while b not a square
-        a += 1
-        b2 = a*a - n
-    b = isqrt(b2)
-    return (a - b, a + b)  # we have n = a*a - b*b
-```
-
----
-
-## Chosen Ciphertext Attack
+$$p_1 = \frac{n_1}{q} = \frac{391}{23} = 17 \qquad p_2 = \frac{n_2}{q} = \frac{667}{23} = 29$$
 
 ---
 
@@ -325,22 +266,64 @@ Ainsi on peut retrouver $M \equiv a^{-1}(C_aC_M)^d$
 
 ---
 
-## Håstad's broadcast attack
+## Factorisation de Fermat
+
+Soit n = 5959, on cherche $a, b \in \mathbb{N}$, tels que $n = a^2 - b^2$
+
+Ces a, b existent, car si $n = cd$, on constate $n = \(\frac{c+d}{2}\)^2 - \(\frac{c-d}{2}\)^2 = ... = \frac{4cd}{4}$
+
+Puisque $a^2 - b^2 = (a - b) \times (a + b)$, on a $a \pm b$ sont des facteurs de n
+
+Pour $i = 0, 1, ...$ On calcule $a = \lceil\sqrt{n}\rceil + i,\; b^2 = a^2 - n,\; b = \sqrt{b^2}$
+
+- Pour $i = 0$, on a $a = 78,\; b^2 = 125,\; b = 11.18$
+
+- Pour $i = 1$, on a $a = 79,\; b^2 = 282,\; b = 16.79$
+
+- Pour $i = 2$, on a $a = 80,\; b^2 = 441,\; b = 21$ (Un carré parfait)
+
+On a donc 
+
+$$ n = a^2 - b^2 = (a - b) \times (a + b) = (80 - 21) \times (80 + 21) = 59 \times 101 $$
 
 ---
 
 ## Håstad's broadcast attack
 
-Soit un message M, chiffré pour 3 clés $n_1, n_2, n_3$ avec $e = 3$
+Soit un message M, chiffré pour 3 clés $n_1 = 55, n_2 = 391, n_3 = 1189$ avec $e = 3$
 
 $$
-C_1 \equiv M^3 \pmod {n_1} \newline
-C_2 \equiv M^3 \pmod {n_2} \newline
-C_3 \equiv M^3 \pmod {n_3}
+C_1 = 47 \equiv M^3 \pmod {n_1} \newline
+C_2 = 297 \equiv M^3 \pmod {n_2} \newline
+C_3 = 252 \equiv M^3 \pmod {n_3}
 $$
 
 Par le théorème des restes chinois, on peut calculer $C \equiv M^3 \pmod {n_1n_2n_3}$
 
+D'abord on obtient (1, 64, -9) = egcd(55, 391), puis (1, -531, 9604) = egcd(55*391, 1189)
+
+Puis on calcule $C = 14887 \mod {25569445}$
+
 Comme $M < n_i$, on a $M^3 < n_1n_2n_3$
 
-Ainsi on peut retrouver $M = \sqrt[3]{C}$
+Ainsi on peut retrouver $M = \sqrt[3]{C} = \sqrt[3]{14887} = 53$
+
+---
+
+## Conclusion
+
+Bien que RSA soit considéré sécuritaire, on doit être vigilant lors de son implémentation
+
+Autre attaques connues sur RSA:
+- Fault attacks on CRT optimization
+- Bleichenbacher's Adaptative Chosen Ciphertext Attack
+
+En pratique, RSA est généralement utilisé
+- pour échanger une clé de chiffrement symmétrique
+- comme une partie d'un protocole de sécurité plus complexe
+
+Autres cryptosystèmes asymétriques avec leurs avantages et inconvénient:
+- L'échange de clé Diffie-Hellman
+- DSA (basé sur les courbes elliptiques)
+
+Informatique quantique, algorithme de Shor, Lattice-based cryptography...
