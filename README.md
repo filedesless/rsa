@@ -51,7 +51,7 @@
 
 Soit $a, b \in \mathbb{Z}$, *egcd* est un algorithme très efficace permettant de calculer 
 
-$$(d, x, y) = egcd(a, b)$$
+$$egcd(a, b) = (d, x, y)$$
 
 - d est le $\gcd(a, b)$, c'est-à-dire le plus grand entier divisant a et b
 - x et y sont les coefficients de l'identité de Bézout $xa + yb = d$
@@ -65,7 +65,7 @@ Sachant que $\gcd(a, b) = \gcd(b, r)$, on répète la division jusqu'à obtenir 
 Par exemple
 
 $$
-(1, 3, -2) = egcd(5, 7) \tag{car $3\times5-2\times7=1$}
+egcd(5, 7) = (1, 3, -2) \tag{car $3\times5-2\times7=1$}
 $$
 
 ---
@@ -175,7 +175,7 @@ L'avantage de ces systèmes est qu'ils ne nécéssitent pas d'échange préalabl
 2. On calcule `n = pq` et $\varphi(n) = (p - 1)(q - 1)$ (par Théorème des restes chinois)
 3. On choisi e tel que $gcd(e, \varphi(n)) = 1$ (Généralement 3 ou 65537)
 4. On calcule d l'inverse modulo $\varphi(n)$ de e (tel que $ed \equiv 1 \pmod {\varphi(n)}$)
-  * Si $(1, d, k) = egcd(e, \varphi(n))$, alors $de + k\varphi(n) = 1$
+  * Si $egcd(e, \varphi(n)) = (1, d, k)$, alors $de + k\varphi(n) = 1$
 
 La <green>clé publique</green> est donc la paire <green>(n, e)</green> et la <red>clé privée</red> est simplement <red>d</red>
 
@@ -302,7 +302,7 @@ $$
 
 Par le théorème des restes chinois, on peut calculer $C \equiv M^3 \pmod {n_1n_2n_3}$
 
-D'abord on obtient (1, 64, -9) = egcd(55, 391), puis (1, -531, 9604) = egcd(55*391, 1189)
+D'abord on obtient egcd(55, 391) = (1, 64, -9), puis egcd(55*391, 1189) = (1, -531, 9604)
 
 Puis on calcule $C = 14887 \mod {25569445}$
 
