@@ -18,6 +18,8 @@
 
 - Le **chiffrement** est la transformation qui, à l'aide d'une clé, rend un message incompréhensible sans l'aide d'une clé
 
+- Une **clé** est un paramètre, souvent numérique, généralement secret, qui permet de coder et décoder des messages
+
 - Un **cryptogramme** est un message chiffré
 
 - Un **cryptosystème** est un algorithme de chiffrement
@@ -26,18 +28,18 @@
 
 # Plan de l'exposé
 
-- Rappels d'arithmétique
+1. Rappels d'arithmétique
 	* Algorithme d'Euclide étendu
 	* Théorème des restes chinois
 	* Théorème d'Euler-Fermat
 
-- Cryptographie
+2. Cryptographie
 	* Symmétrique
 	* Asymmétrique
 	* Clés RSA
   * Chiffrement RSA
 
-- Cryptanalyse
+3. Cryptanalyse
 	* Clés à facteurs communs
   * Factorisation de Fermat
 	* Chosen ciphertext attack
@@ -45,7 +47,7 @@
 
 ---
 
-## Algorithme d'Euclide étendu
+## 1 - Algorithme d'Euclide étendu
 
 Soit $a, b \in \mathbb{Z}$, *egcd* est un algorithme très efficace permettant de calculer 
 
@@ -76,8 +78,8 @@ Alors avec $a, b \in \mathbb{Z}$ (prenons 1 et 2), on a $\exists! c \in \mathbb{
 
 $$
 \begin{align\*}
-c \equiv a \pmod p & & c \equiv 1 \pmod 5 \\\\
-c \equiv b \pmod q & & c \equiv 2 \pmod 7
+c \equiv a \pmod p & & \quad\quad\quad c \equiv 1 \pmod 5 \\\\
+c \equiv b \pmod q & & \quad\quad\quad c \equiv 2 \pmod 7
 \end{align\*}
 $$
 
@@ -85,7 +87,7 @@ $$
 
 $$
 \begin{align\*}
-3 \times 5 -2 \times 7 = 1  \tag{$(1, 3, -2) = egcd(5, 7)$}
+xp + yq = 3 \times 5 -2 \times 7 = 1  \tag{$egcd(5, 7) = (1, 3, -2)$}
 \end{align\*}
 $$
 
@@ -122,11 +124,17 @@ $$
 
 ---
 
-## Chiffrement symmétrique
+## 2 - Chiffrement symmétrique
 
 - Alice et Bob doivent au préalable échanger en secret une clé
 
 - Celle-ci permet de chiffrer et déchiffrer des messages
+
+*Exemple*: la fonction $x \mapsto x + 3 \pmod{26}$ est appelée un code de César
+ <center>
+`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`<br>
+`D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
+</center>
 
 Sur l'alphabet $\mathbb{Z}_n$ on peut construire $n\varphi(n)$ fonctions de chiffrement affines
 
@@ -136,12 +144,6 @@ f_{ab} : \mathbb{Z}_n & \to \mathbb{Z}_n \tag{$a \in \mathbb{Z}_n^{\times}, b \i
 x &\mapsto ax + b \pmod n
 \end{align\*}
 $$
-
-*Exemple*: la fonction $x \mapsto x + 3 \pmod{26}$ est appelée un code de César
- <center>
-`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`<br>
-`D E F G H I J K L M N O P Q R S T U V W X Y Z A B C`
-</center>
 
 Plus généralement, sur un alphabet $\Sigma$ de cardinal n, on peut utiliser l'une des n! permutations $\sigma \in Sym(\Sigma)$ comme fonction de chiffrement
 
@@ -216,7 +218,7 @@ La sécurité de la clé privée, étant donné un message M et son cryptogramme
 
 ---
 
-## Cryptanalyse
+## 3 - Cryptanalyse
 
 RSA est un système complexe, ne pouvant être implémenté n'importe comment
 
